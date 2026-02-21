@@ -1,0 +1,47 @@
+# This file was generated from a template. Edit it to match your keyboard.
+# See https://docs.zephyrproject.org/4.1.0/hardware/porting/board_porting.html#write-kconfig-files
+# for more information.
+
+if BOARD_AGENTICKBD
+
+config ZMK_KEYBOARD_NAME
+    default "AgenticKbd"
+
+if USB
+
+config USB_NRFX
+    default y
+
+config USB_DEVICE_STACK
+    default y
+
+endif # USB
+
+config BT_CTLR
+    default BT
+
+if DISPLAY
+
+choice ST7789V_PIXEL_FORMAT
+	default ST7789V_RGB888
+endchoice
+
+if LVGL
+
+config LV_USE_ST7789
+    default y
+
+config LV_Z_BITS_PER_PIXEL
+	default 24
+
+endif # LVGL
+
+endif # DISPLAY
+
+choice ZMK_BOOTMODE_MAGIC_VALUE_BOOTLOADER_TYPE
+    default ZMK_BOOTMODE_MAGIC_VALUE_BOOTLOADER_TYPE_ADAFRUIT_NRF52
+
+endchoice
+
+
+endif # BOARD_AGENTICKBD

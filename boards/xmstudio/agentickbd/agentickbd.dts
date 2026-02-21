@@ -1,0 +1,299 @@
+// This file was generated from a template. Edit it to match your keyboard.
+// See https://docs.zephyrproject.org/4.1.0/hardware/porting/board_porting.html
+// and https://zmk.dev/docs/development/hardware-integration/new-shield for more
+// instructions.
+
+/dts-v1/;
+#include <nordic/nrf52840_qiaa.dtsi>
+#include <common/nordic/nrf52840_uf2_boot_mode.dtsi>
+#include <dt-bindings/led/led.h>
+#include <dt-bindings/zmk/matrix_transform.h>
+
+
+#include "agentickbd-pinctrl.dtsi"
+#include "agentickbd-layouts.dtsi"
+
+/ {
+    model = "AgenticKbd";
+    compatible = "agentickbd";
+
+    chosen {
+        zephyr,code-partition = &code_partition;
+        zephyr,sram = &sram0;
+        zephyr,flash = &flash0;
+        zephyr,display = &st7789v_st7789v;
+        zmk,underglow = &led_strip;
+        zmk,backlight = &backlight;
+        // Uncomment this if you enabled one of the "vddh" nodes below.
+        zmk,battery = &vbatt;
+        zmk,physical-layout = &default_layout;
+        zephyr,boot-mode = &boot_retention;
+        zmk,magic-boot-mode = &adafruit_boot_retention;
+        zmk,studio-rpc-uart = &studio_rpc_usb_uart;
+    };
+
+    kscan: kscan {
+        // If the hardware does not use a switch matrix, change this to the
+        // appropriate driver and update the properties below to match.
+        // See https://zmk.dev/docs/config/kscan for supported key scan drivers.
+        compatible = "zmk,kscan-gpio-matrix";
+        // Set this to "col2row" or "row2col" to match the hardware. If using
+        // "row2col", change the col-gpios to (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)
+        // and the row-gpios to GPIO_ACTIVE_HIGH.
+        diode-direction = "row2col";
+        wakeup-source;
+
+        // Replace these comments with the GPIO pins in the matrix.
+        // See https://zmk.dev/docs/development/hardware-integration/new-shield#shield-overlays
+        col-gpios
+            = <&gpio1 13 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&gpio0  2 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&gpio0 29 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            ;
+
+        row-gpios
+            = <&gpio1 11 GPIO_ACTIVE_HIGH>
+            , <&gpio1 10 GPIO_ACTIVE_HIGH>
+            , <&gpio0  3 GPIO_ACTIVE_HIGH>
+            , <&gpio0 28 GPIO_ACTIVE_HIGH>
+            ;
+    };
+
+    default_transform: default_transform {
+        // See https://zmk.dev/docs/development/hardware-integration/new-shield#matrix-transform
+        // for how to configure this
+        compatible = "zmk,matrix-transform";
+        columns = <3>;
+        rows = <4>;
+
+        map = <
+            RC(0, 0) RC(0, 1) RC(0, 2)
+            RC(1, 0) RC(1, 1) RC(1, 2)
+            RC(2, 0) RC(2, 1) RC(2, 2)
+            RC(3, 0) RC(3, 1) RC(3, 2)
+        >;
+    };
+
+    // leds {
+    //     compatible = "gpio-leds";
+
+    //     // If you have a GPIO routed to a status LED, set it here.
+    //     // Otherwise, delete this block.
+    //     blue_led: led_0 {
+    //         gpios = <&gpio0 0 GPIO_ACTIVE_HIGH>;
+    //     };
+    // };
+
+    // If you are powering the SoC from the VDDH pin, uncomment this block.
+    // Otherwise, delete it.
+
+    // vbatt: vbatt {
+    //     compatible = "zmk,battery-nrf-vddh";
+    // };
+
+    // If you are powering the SoC from the VDD pin and you have a voltage divider
+    // routed to an analog pin to read the battery voltage, uncomment this block
+    // and assign the correct ADC channel and resistance values.
+    // Otherwise, delete it.
+
+    vbatt: vbatt {
+        compatible = "voltage-divider";
+        io-channels = <&adc 3>;
+        output-ohms = <100000>;
+        full-ohms = <(100000 + 100000)>;
+    };
+
+	mipi_dbi_st7789v {
+		compatible = "zephyr,mipi-dbi-spi";
+		spi-dev = <&spi0>;
+		dc-gpios = <&gpio0 9 (GPIO_ACTIVE_HIGH)>; // RS pin
+		reset-gpios = <&gpio0 10 (GPIO_ACTIVE_HIGH)>;
+		write-only;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		st7789v_st7789v: st7789v@0 {
+			compatible = "sitronix,st7789v";
+			mipi-max-frequency = <20000000>;
+			reg = <0>;
+			width = <320>;
+			height = <170>;
+			x-offset = <0>;
+			y-offset = <35>;
+			vcom = <0x2b>;
+			gctrl = <0x35>;
+			vrhs = <0x0f>;
+			vdvs = <0x20>;
+			mdac = <0x60>;
+			gamma = <0x01>;
+			colmod = <0x55>;
+			lcm = <0x2c>;
+			porch-param = [0c 0c 00 33 33];
+			cmd2en-param = [5a 69 02 01];
+			pwctrl1-param = [52 a1];
+			pvgam-param = [d0 00 02 07 0b 1a 31 54 40 29 12 12 12 17];
+			nvgam-param = [d0 00 02 07 05 15 2d 44 44 1c 18 16 1c 1d];
+			ram-param = [00 f8];
+			rgb-param = [cd 08 14];
+			mipi-mode = "MIPI_DBI_MODE_SPI_4WIRE";
+		};
+	};
+
+    magic_mapper {
+        compatible = "zmk,bootmode-to-magic-mapper";
+        status = "okay";
+
+        #address-cells = <1>;
+        #size-cells = <1>;
+
+        boot_retention: retention@0 {
+            compatible = "zephyr,retention";
+            status = "okay";
+            reg = <0x0 0x1>;
+        };
+    };
+
+    backlight: pwmleds {
+        compatible = "pwm-leds";
+        pwm_led_0 {
+            pwms = <&pwm0 0 PWM_USEC(20) PWM_POLARITY_NORMAL>;
+        };
+    };
+};
+
+// Uncomment this to switch from the LDO to the DC/DC regulator on REG0.
+// Do not enable the DC/DC regulator without an LC filter connected to the DCCH
+// pin, or the keyboard will not boot until an LC filter is connected.
+// &reg0 {
+//     status = "okay";
+// };
+
+// Uncomment this to switch from the LDO to the DC/DC regulator on REG1.
+// Do not enable the DC/DC regulator without an LC filter connected to the DCC
+// pin, or the keyboard will not boot until an LC filter is connected.
+// &reg1 {
+//     regulator-initial-mode = <NRF5X_REG_MODE_DCDC>;
+// };
+
+&adc {
+    status = "okay";
+};
+
+&gpiote {
+    status = "okay";
+};
+
+&gpio0 {
+    status = "okay";
+};
+
+&gpio1 {
+    status = "okay";
+};
+
+&uart0 {
+    status = "disabled";
+    // compatible = "nordic,nrf-uarte";
+    // current-speed = <115200>;
+    // pinctrl-0 = <&uart0_default>;
+    // pinctrl-1 = <&uart0_sleep>;
+    // pinctrl-names = "default", "sleep";
+};
+
+// If you use the NFC pins as GPIOs, uncomment this. Otherwise, remove it.
+&uicr {
+    nfct-pins-as-gpios;
+};
+
+zephyr_udc0: &usbd {
+    status = "okay";
+};
+
+&flash0 {
+    // Adjust this flash map as is necessary for your board. For more information, see
+    // https://docs.zephyrproject.org/4.1.0/services/storage/flash_map/flash_map.html#relationship-with-devicetree
+    partitions {
+        compatible = "fixed-partitions";
+        #address-cells = <1>;
+        #size-cells = <1>;
+
+
+        // If using a bootloader with SoftDevice included, replace the code_partition
+        // node above with the following. If using SoftDevice v7, change 26000 to 27000.
+
+        sd_partition: partition@0 {
+            reg = <0x0 DT_SIZE_K(4)>;
+        };
+        code_partition: partition@26000 {
+            reg = <DT_SIZE_K(152) DT_SIZE_K(792)>;
+        };
+
+        // The flash starting at 0x000d4000 and ending at
+        // 0x000f3fff is reserved for use by the application.
+
+        // Storage partition will be used by NVS if enabled.
+        storage_partition: partition@d4000 {
+            reg = <DT_SIZE_K(848) DT_SIZE_K(128)>;
+        };
+
+        boot_partition: partition@f4000 {
+            reg = <DT_SIZE_K(976) DT_SIZE_K(48)>;
+        };
+    };
+};
+
+&pwm0 {
+    status = "okay";
+    pinctrl-0 = <&pwm0_default>;
+    pinctrl-1 = <&pwm0_sleep>;
+    pinctrl-names = "default", "sleep";
+};
+
+&spi0 {
+    compatible = "nordic,nrf-spim";
+    status = "okay";
+    pinctrl-0 = <&spi0_default>;
+    pinctrl-1 = <&spi0_sleep>;
+    pinctrl-names = "default", "sleep";
+
+    cs-gpios = <&gpio0 1 (GPIO_ACTIVE_HIGH)>;
+};
+
+&spi3 {
+    compatible = "nordic,nrf-spim";
+    status = "okay";
+    pinctrl-0 = <&spi3_default>;
+    pinctrl-1 = <&spi3_sleep>;
+    pinctrl-names = "default", "sleep";
+
+    led_strip: ws2812@0 {
+        compatible = "worldsemi,ws2812-spi";
+
+        /* SPI */
+        reg = <0>;
+        spi-max-frequency = <4000000>;
+
+        /* WS2812 */
+        chain-length = <9>; /* number of LEDs */
+        spi-one-frame = <0x70>;
+        spi-zero-frame = <0x40>;
+
+        color-mapping = <LED_COLOR_ID_GREEN
+                        LED_COLOR_ID_RED
+                        LED_COLOR_ID_BLUE>;
+    };
+};
+
+&gpregret1 {
+    adafruit_boot_retention: retention@0 {
+        compatible = "zephyr,retention";
+        status = "okay";
+        reg = <0x0 0x1>;
+    };
+};
+
+&zephyr_udc0 {
+    studio_rpc_usb_uart: studio_rpc_usb_uart {
+        compatible = "zephyr,cdc-acm-uart";
+    };
+};

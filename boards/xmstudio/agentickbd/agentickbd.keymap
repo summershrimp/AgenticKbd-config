@@ -1,0 +1,76 @@
+// This file was generated from a template. Edit it to match your keyboard.
+// See https://zmk.dev/docs/development/hardware-integration/new-shield for more instructions.
+
+#include <behaviors.dtsi>
+#include <dt-bindings/zmk/keys.h>
+
+/ {
+    // Define a default keymap here.
+    // See https://zmk.dev/docs/development/hardware-integration/new-shield#default-keymap.
+    keymap {
+        compatible = "zmk,keymap";
+
+        default_layer {
+            bindings = <
+                &none &none &none
+                &none &none &none
+                &none &none &none
+                &none &none &none
+            >;
+        };
+
+        layer1 {
+            bindings = <
+                &none &none &none
+                &none &none &none
+                &none &none &none
+                &none &none &none
+            >;
+        };
+
+        layer2 {
+            bindings = <
+                &none &none &none
+                &none &none &none
+                &none &none &none
+                &none &none &none
+            >;
+        };
+
+        layer3 {
+            bindings = <
+                &none &none &none
+                &none &none &none
+                &none &none &none
+                &none &none &none
+            >;
+        };
+
+        layer4 {
+            bindings = <
+                &none &none &none
+                &none &none &none
+                &none &none &none
+                &none &none &none
+            >;
+        };
+
+        layer5 {
+            bindings = <
+                &none &none &none
+                &none &none &none
+                &none &none &none
+                &none &none &none
+            >;
+        };
+
+        layer6 {
+            bindings = <
+                &none &none &none
+                &none &none &none
+                &none &none &none
+                &none &none &none
+            >;
+        };
+    };
+};
