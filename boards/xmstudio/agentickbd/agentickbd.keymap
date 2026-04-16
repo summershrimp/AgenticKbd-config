@@ -5,6 +5,13 @@
 #include <dt-bindings/zmk/keys.h>
 
 / {
+    behaviors {
+        rot_kp: sensor_rotate_kp {
+            compatible = "zmk,behavior-sensor-rotate-var";
+            #sensor-binding-cells = <2>;
+            bindings = <&kp>, <&kp>;
+        };
+    };
     // Define a default keymap here.
     // See https://zmk.dev/docs/development/hardware-integration/new-shield#default-keymap.
     keymap {
@@ -16,7 +23,9 @@
                 &none &none &none
                 &none &none &none
                 &none &none &none
+                &none
             >;
+            sensor-bindings = <&rot_kp C_VOL_UP C_VOL_DN>;
         };
 
         layer1 {
@@ -25,6 +34,7 @@
                 &none &none &none
                 &none &none &none
                 &none &none &none
+                &none
             >;
         };
 
@@ -34,6 +44,7 @@
                 &none &none &none
                 &none &none &none
                 &none &none &none
+                &none
             >;
         };
 
@@ -43,6 +54,7 @@
                 &none &none &none
                 &none &none &none
                 &none &none &none
+                &none
             >;
         };
 
@@ -52,6 +64,7 @@
                 &none &none &none
                 &none &none &none
                 &none &none &none
+                &none
             >;
         };
 
@@ -61,6 +74,7 @@
                 &none &none &none
                 &none &none &none
                 &none &none &none
+                &none
             >;
         };
 
@@ -70,6 +84,7 @@
                 &none &none &none
                 &none &none &none
                 &none &none &none
+                &none
             >;
         };
     };

@@ -22,6 +22,7 @@
         zephyr,sram = &sram0;
         zephyr,flash = &flash0;
         zephyr,display = &st7789v_st7789v;
+        zmk,kscan = &kscan;
         zmk,underglow = &led_strip;
         // Uncomment this if you enabled one of the "vddh" nodes below.
         zmk,battery = &vbatt;
@@ -32,6 +33,22 @@
     };
 
     kscan: kscan {
+        compatible = "zmk,kscan-composite";
+        wakeup-source;
+        rows = <5>;
+        columns = <3>;
+
+        matrix {
+            kscan = <&kscan_matrix>;
+        };
+
+        xl1_key {
+            kscan = <&kscan_xl1>;
+            row-offset = <4>;
+        };
+    };
+
+    kscan_matrix: kscan_matrix {
         // If the hardware does not use a switch matrix, change this to the
         // appropriate driver and update the properties below to match.
         // See https://zmk.dev/docs/config/kscan for supported key scan drivers.
@@ -58,19 +75,43 @@
             ;
     };
 
+    kscan_xl1: kscan_xl1 {
+        compatible = "zmk,kscan-gpio-direct";
+        wakeup-source;
+
+        input-gpios
+            = <&gpio0 0 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>
+            ;
+    };
+
     default_transform: default_transform {
         // See https://zmk.dev/docs/development/hardware-integration/new-shield#matrix-transform
         // for how to configure this
         compatible = "zmk,matrix-transform";
         columns = <3>;
-        rows = <4>;
+        rows = <5>;
 
         map = <
             RC(0, 0) RC(0, 1) RC(0, 2)
             RC(1, 0) RC(1, 1) RC(1, 2)
             RC(2, 0) RC(2, 1) RC(2, 2)
             RC(3, 0) RC(3, 1) RC(3, 2)
+            RC(4, 0)
         >;
+    };
+
+    encoder: encoder {
+        compatible = "alps,ec11";
+        a-gpios = <&gpio0 31 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        b-gpios = <&gpio0 30 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        steps = <80>;
+        status = "okay";
+    };
+
+    sensors: sensors {
+        compatible = "zmk,keymap-sensors";
+        sensors = <&encoder>;
+        triggers-per-rotation = <20>;
     };
 
     // leds {
