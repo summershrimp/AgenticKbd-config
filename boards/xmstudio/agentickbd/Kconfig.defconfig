@@ -22,8 +22,14 @@ config BT_CTLR
 
 if DISPLAY
 
+config LV_Z_MEM_POOL_SIZE
+	default 65536
+
+config SYS_HEAP_RUNTIME_STATS
+	default y
+
 choice ST7789V_PIXEL_FORMAT
-	default ST7789V_RGB888
+	default ST7789V_RGB565
 endchoice
 
 if LVGL
@@ -32,7 +38,7 @@ config LV_USE_ST7789
     default y
 
 config LV_Z_BITS_PER_PIXEL
-	default 24
+	default 16
 
 endif # LVGL
 

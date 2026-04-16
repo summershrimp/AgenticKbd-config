@@ -23,7 +23,6 @@
         zephyr,flash = &flash0;
         zephyr,display = &st7789v_st7789v;
         zmk,underglow = &led_strip;
-        zmk,backlight = &backlight;
         // Uncomment this if you enabled one of the "vddh" nodes below.
         zmk,battery = &vbatt;
         zmk,physical-layout = &default_layout;
@@ -98,7 +97,7 @@
 
     vbatt: vbatt {
         compatible = "voltage-divider";
-        io-channels = <&adc 3>;
+        io-channels = <&adc 2>;
         output-ohms = <100000>;
         full-ohms = <(100000 + 100000)>;
     };
@@ -107,7 +106,7 @@
 		compatible = "zephyr,mipi-dbi-spi";
 		spi-dev = <&spi0>;
 		dc-gpios = <&gpio0 9 (GPIO_ACTIVE_HIGH)>; // RS pin
-		reset-gpios = <&gpio0 10 (GPIO_ACTIVE_HIGH)>;
+		reset-gpios = <&gpio0 10 (GPIO_ACTIVE_LOW)>;
 		write-only;
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -116,16 +115,17 @@
 			compatible = "sitronix,st7789v";
 			mipi-max-frequency = <20000000>;
 			reg = <0>;
-			width = <320>;
-			height = <170>;
-			x-offset = <0>;
-			y-offset = <35>;
+			width = <284>;
+			height = <76>;
+			x-offset = <18>;
+			y-offset = <82>;
 			vcom = <0x2b>;
 			gctrl = <0x35>;
 			vrhs = <0x0f>;
 			vdvs = <0x20>;
-			mdac = <0x60>;
+			mdac = <0xA0>;
 			gamma = <0x01>;
+			inversion-off;
 			colmod = <0x55>;
 			lcm = <0x2c>;
 			porch-param = [0c 0c 00 33 33];
@@ -153,12 +153,20 @@
         };
     };
 
-    backlight: pwmleds {
+    display_backlight: pwmleds {
         compatible = "pwm-leds";
-        pwm_led_0 {
-            pwms = <&pwm0 0 PWM_USEC(20) PWM_POLARITY_NORMAL>;
+        display_backlight_pwm: pwm_led_0 {
+            pwms = <&pwm0 1 PWM_USEC(255) PWM_POLARITY_INVERTED>;
         };
     };
+
+    EXT_POWER {
+		compatible = "zmk,ext-power-generic";
+		label = "EXT_POWER";
+		init-delay-ms = <50>;
+		control-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
+    };
+
 };
 
 // Uncomment this to switch from the LDO to the DC/DC regulator on REG0.
@@ -185,6 +193,14 @@
 
 &gpio0 {
     status = "okay";
+
+    keep_power_hold: keep_power_hold {
+        gpio-hog;
+        gpios = <1 GPIO_ACTIVE_HIGH>;
+        output-high;
+        line-name = "keep_power";
+    };
+
 };
 
 &gpio1 {
@@ -218,14 +234,14 @@ zephyr_udc0: &usbd {
         #size-cells = <1>;
 
 
-        // If using a bootloader with SoftDevice included, replace the code_partition
-        // node above with the following. If using SoftDevice v7, change 26000 to 27000.
+        // Reserve the first 4 KB for the Nordic MBR. The application starts
+        // at 0x1000 to match the UF2 bootloader layout used on this board.
 
         sd_partition: partition@0 {
             reg = <0x0 DT_SIZE_K(4)>;
         };
-        code_partition: partition@26000 {
-            reg = <DT_SIZE_K(152) DT_SIZE_K(792)>;
+        code_partition: partition@1000 {
+            reg = <DT_SIZE_K(4) DT_SIZE_K(844)>;
         };
 
         // The flash starting at 0x000d4000 and ending at
@@ -256,7 +272,7 @@ zephyr_udc0: &usbd {
     pinctrl-1 = <&spi0_sleep>;
     pinctrl-names = "default", "sleep";
 
-    cs-gpios = <&gpio0 1 (GPIO_ACTIVE_HIGH)>;
+	cs-gpios = <&gpio0 22 (GPIO_ACTIVE_LOW)>;
 };
 
 &spi3 {
